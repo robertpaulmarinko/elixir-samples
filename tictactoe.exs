@@ -14,8 +14,12 @@ defmodule TicTacToe do
     end
   end
 
+  def getCellValue(rowIndex, colIndex, board) do
+    elem(elem(board,rowIndex), colIndex)
+  end
+
   def isMoveValid(row, col, board) do
-    valueInCell = elem(elem(board,row), col)
+    valueInCell = getCellValue(row, col, board)
     case valueInCell do
       :player1 ->
         IO.puts("Player 1 in this cell")
@@ -100,13 +104,59 @@ defmodule TicTacToe do
     put_elem(board, row, updatedRow)
   end
 
+  def isRowAllOnePlayer(row) do
+      row == {:player1, :player1, :player1} or row == {:player2, :player2, :player2}
+  end
+
+  def isColAllOnePlayer(colIndex, board) do
+    colValues = Enum.map(Tuple.to_list(board), fn row -> elem(row,colIndex) end)
+    colValues == [:player1, :player1, :player1] or colValues == [:player2, :player2, :player2]
+  end
+
+  def isDigonalAllOnePlayer(board) do
+    centerCell = getCellValue(1,1,board)
+    centerCell !== :empty and (
+      (getCellValue(0,0,board) == centerCell and getCellValue(2,2,board) == centerCell)
+      or
+      (getCellValue(0,2,board) == centerCell and getCellValue(2,0,board) == centerCell)
+    )
+  end
+
+  def areNoEmptyCells(board) do
+    allValues = Enum.flat_map(Tuple.to_list(board), fn row -> Tuple.to_list(row) end)
+    Enum.count(allValues, fn value -> value == :empty end) == 0
+  end
+
+  def checkForEndOfGame(board) do
+    cond do
+      isRowAllOnePlayer(elem(board,0)) -> { true, getCellValue(0,0,board)}
+      isRowAllOnePlayer(elem(board,1)) -> { true, getCellValue(1,0,board)}
+      isRowAllOnePlayer(elem(board,2)) -> { true, getCellValue(2,0,board)}
+      isColAllOnePlayer(0, board) -> { true, getCellValue(0,0,board)}
+      isColAllOnePlayer(1, board) -> { true, getCellValue(0,1,board)}
+      isColAllOnePlayer(2, board) -> { true, getCellValue(0,2,board)}
+      isDigonalAllOnePlayer(board) -> { true, getCellValue(1,1,board)}
+      areNoEmptyCells(board) -> { true, :empty}
+      true -> { false, :empty }
+    end
+  end
+
   def gameLoop(board, currentPlayer) do
     outputBoard(board)
     currentPlayer = nextPlayer(currentPlayer)
     { row, col } = getMove(board)
     board = savePlayerMove(currentPlayer, row, col, board)
-    # TODO - put in logic to end game
-    gameLoop(board, currentPlayer)
+
+    { isGameOver, winningPlayer } = checkForEndOfGame(board)
+    case isGameOver do
+      false -> gameLoop(board, currentPlayer)
+      true ->
+        case winningPlayer do
+          :player1 -> IO.puts("Player 1 Won!")
+          :player2 -> IO.puts("Player 2 Won!")
+          :empty ->  IO.puts("Tie!")
+        end
+    end
   end
 
   def startGame() do
@@ -115,7 +165,7 @@ defmodule TicTacToe do
       { :empty, :empty, :empty},
       { :empty, :empty, :empty},
     }
-    # currentPlayer = :none;
+
     _playComputer = true;
     _gameOn = true;
 

@@ -1,3 +1,8 @@
+# Intro
+
+Sample code written whle learning Elixir
+
+
 # Installation
 	https://elixir-lang.org/install.html
 	1) Install erlang 27	https://www.erlang.org/downloads.html#prebuilt
